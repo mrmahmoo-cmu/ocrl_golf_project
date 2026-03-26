@@ -45,15 +45,15 @@ Expected output: contact at ~0.17s, ball launch at ~22 m/s, all checks will pass
 
 ## Phase Roadmap
 
-### Phase 1 — Arm + Swing (DONE)
-- [x] MJCF model with 2-DOF arm, club, ball
-- [x] Contact detection and ball launch
-- [x] Environment wrapper with clean API
-- [x] Open-loop test demonstrating full pipeline
+### Phase 1 — Arm + Swing
+- MJCF model with 2-DOF arm, club, ball
+- Contact detection and ball launch
+- Environment wrapper with clean API
+- Open-loop test demonstrating full pipeline
 
 ### Phase 2 — Ball Flight + Terrain
-- [ ] Air resistance (quadratic drag on ball)
-- [ ] Terrain heightfields with friction zones (sand, fairway, rough, OOB)
-- [ ] Ground deceleration model (surface-dependent)
+- Air resistance (quadratic drag on ball)
+- Terrain heightfields with friction zones (sand, fairway, rough, OOB)
+- Ground deceleration model (surface-dependent)
 
 ### Phase 3 — Courses + Optimization?
