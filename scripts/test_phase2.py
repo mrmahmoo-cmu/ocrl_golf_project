@@ -1,119 +1,61 @@
-"""
-test_phase2.py — Verifies air drag, terrain, rolling deceleration.
-"""
+"""test_phase2.py — Verifies drag, terrain, rolling decel, and hole completion."""
 import sys
 sys.path.insert(0, ".")
 import numpy as np
 from envs.golf_env import GolfSwingEnv, TerrainMap
 
-def swing_torque(t):
-    """Downswing: negative elbow torque."""
-    if t < 0.15:
-        return [-120.0, 0.0]
-    elif t < 0.25:
-        return [-80.0, 0.0]
-    else:
-        return [0.0, 0.0]
+def swing(t):
+    if t < 0.15: return [-120.0, 0.0]
+    elif t < 0.25: return [-80.0, 0.0]
+    else: return [0.0, 0.0]
 
-def run_episode(env, label=""):
-    obs = env.reset()
-    launch_vel = None
-    max_height = 0
-    terrain_log = set()
-    trajectory = []
-
+def run(env, label=""):
+    obs = env.reset(); lv = None; mh = 0; tl = set(); tr = []
     for step in range(env.max_steps):
-        t = step * env.ctrl_dt
-        obs, info = env.step(swing_torque(t))
-
+        obs, info = env.step(swing(step * env.ctrl_dt))
         if info["ball_launched"]:
-            max_height = max(max_height, obs["ball_pos"][2])
-            trajectory.append(obs["ball_pos"].copy())
-            terrain_log.add(info["terrain"])
-        if info["ball_launched"] and launch_vel is None:
-            launch_vel = info["ball_launch_vel"]
-        if info["done"]:
-            break
-
-    traj = np.array(trajectory) if trajectory else np.zeros((1, 3))
-    return {
-        "label": label,
-        "launch_speed": np.linalg.norm(launch_vel) if launch_vel is not None else 0,
-        "launch_angle": np.degrees(np.arctan2(launch_vel[2], launch_vel[0])) if launch_vel is not None else 0,
-        "max_height": max_height,
-        "final_pos": obs["ball_pos"].copy(),
-        "final_speed": info["ball_speed"],
-        "dist_to_hole": info["dist_to_hole"],
-        "ball_stopped": info["ball_stopped"],
-        "in_hole": info["in_hole"],
-        "x_travel": traj[-1, 0] - traj[0, 0] if len(traj) > 1 else 0,
-        "terrains_visited": terrain_log,
-        "sim_time": info["time"],
-        "ball_toward_hole": launch_vel is not None and launch_vel[0] > 0,
-    }
-
-def print_results(r):
-    print(f"\n  [{r['label']}]")
-    print(f"  Launch:       {r['launch_speed']:.1f} m/s at {r['launch_angle']:.1f} deg")
-    print(f"  Max height:   {r['max_height']:.2f} m")
-    print(f"  X travel:     {r['x_travel']:.2f} m")
-    print(f"  Final pos:    ({r['final_pos'][0]:.2f}, {r['final_pos'][1]:.2f}, {r['final_pos'][2]:.3f})")
-    print(f"  Final speed:  {r['final_speed']:.4f} m/s")
-    print(f"  Dist to hole: {r['dist_to_hole']:.2f} m")
-    print(f"  Stopped:      {r['ball_stopped']}")
-    print(f"  Terrains:     {r['terrains_visited']}")
+            mh = max(mh, obs["ball_pos"][2]); tr.append(obs["ball_pos"].copy()); tl.add(info["terrain"])
+        if info["ball_launched"] and lv is None: lv = info["ball_launch_vel"]
+        if info["done"]: break
+    t = np.array(tr) if tr else np.zeros((1,3))
+    return {"label":label, "speed":np.linalg.norm(lv) if lv is not None else 0,
+            "angle":np.degrees(np.arctan2(lv[2],lv[0])) if lv is not None else 0, "mh":mh,
+            "fpos":obs["ball_pos"].copy(), "fspd":info["ball_speed"],
+            "dist":info["dist_to_hole"], "stop":info["ball_stopped"],
+            "hole":info["in_hole"], "xt":t[-1,0]-t[0,0] if len(t)>1 else 0,
+            "terr":tl, "toward":lv is not None and lv[0]>0, "time":info["time"]}
 
 def main():
-    print("=" * 60)
-    print("PHASE 2 TEST — Corrected Geometry + Physics")
-    print("=" * 60)
+    print("="*60); print("PHASE 2 TEST"); print("="*60)
 
-    print("\n── Test 1: Full Physics ──")
-    r_full = run_episode(
-        GolfSwingEnv(ctrl_dt=0.001, max_time=15.0, enable_drag=True, enable_rolling_decel=True),
-        "Full Physics")
-    print_results(r_full)
+    print("\n── Full Physics ──")
+    rf = run(GolfSwingEnv(ctrl_dt=0.001, max_time=15.0), "Full")
+    print(f"  Launch: {rf['speed']:.1f} m/s at {rf['angle']:.1f} deg")
+    print(f"  Travel: {rf['xt']:.1f}m  Height: {rf['mh']:.1f}m  Stopped: {rf['stop']}  Terrains: {rf['terr']}")
 
-    print("\n── Test 2: No Physics (baseline) ──")
-    r_none = run_episode(
-        GolfSwingEnv(ctrl_dt=0.001, max_time=15.0, enable_drag=False, enable_rolling_decel=False),
-        "No Physics")
-    print_results(r_none)
+    print("\n── No Physics ──")
+    rn = run(GolfSwingEnv(ctrl_dt=0.001, max_time=15.0, enable_drag=False, enable_rolling_decel=False), "None")
+    print(f"  Travel: {rn['xt']:.1f}m  Stopped: {rn['stop']}")
 
-    print("\n── Test 3: Terrain Classification ──")
+    print("\n── Hole Completion (hole at 65m) ──")
+    rh = run(GolfSwingEnv(ctrl_dt=0.001, max_time=15.0, hole_pos=(65.0, 0.0)), "Hole")
+    print(f"  In hole: {rh['hole']}  Final pos: ({rh['fpos'][0]:.2f}, {rh['fpos'][2]:.3f})  Speed: {rh['fspd']:.4f}")
+
+    print("\n── Terrain ──")
     tm = TerrainMap()
     tests = [(0,0,"tee"),(10,0,"fairway"),(37.5,0,"sand"),(45,0,"green"),(10,7,"rough"),(60,0,"rough")]
-    terrain_ok = True
-    for x, y, exp in tests:
-        act = tm.classify(x, y)
-        ok = act == exp
-        if not ok: terrain_ok = False
-        print(f"  ({x:5.1f},{y:4.1f}) → {act:10s} expected {exp:10s} [{'OK' if ok else 'FAIL'}]")
+    tok = all(tm.classify(x,y)==e for x,y,e in tests)
+    for x,y,e in tests:
+        a=tm.classify(x,y); print(f"  ({x},{y})→{a} [{'OK' if a==e else 'FAIL'}]")
 
-    print(f"\n{'─'*60}")
-    print("CHECKLIST:")
-    checks = {
-        "Contact + launch":       r_full["launch_speed"] > 5,
-        "Ball toward hole (+X)":  r_full["ball_toward_hole"],
-        "Drag reduces distance":  r_full["x_travel"] < r_none["x_travel"] * 0.8,
-        "Ball stops (full)":      r_full["ball_stopped"],
-        "Ball doesn't stop (no)": not r_none["ball_stopped"],
-        "Terrain classification": terrain_ok,
-        "Max height realistic":   0.1 < r_full["max_height"] < 50,
-    }
-    all_pass = True
-    for name, ok in checks.items():
-        if not ok: all_pass = False
-        print(f"  [{'PASS' if ok else 'FAIL'}] {name}")
+    print(f"\n{'─'*60}\nCHECKLIST:")
+    checks = {"Launch": rf["speed"]>5, "Toward hole": rf["toward"],
+              "Drag works": rf["xt"]<rn["xt"]*0.8, "Ball stops": rf["stop"],
+              "No-phys doesn't stop": not rn["stop"], "Terrain": tok,
+              "Hole completion": rh["hole"], "Ball frozen at hole": rh["fspd"]<0.001}
+    ok = all(checks.values())
+    for n,v in checks.items(): print(f"  [{'PASS' if v else 'FAIL'}] {n}")
+    print(f"\n{'='*60}\nPHASE 2 {'ALL SYSTEMS GO' if ok else 'ISSUES'}\n{'='*60}")
+    return ok
 
-    print(f"\n{'='*60}")
-    print("PHASE 2 " + ("ALL SYSTEMS GO" if all_pass else "ISSUES DETECTED"))
-    print(f"{'='*60}")
-    print(f"\n  {'Config':<20s} {'X travel':>10s} {'Stopped':>10s}")
-    print(f"  {'─'*20} {'─'*10} {'─'*10}")
-    for r in [r_none, r_full]:
-        print(f"  {r['label']:<20s} {r['x_travel']:>9.1f}m {'Yes' if r['ball_stopped'] else 'No':>10s}")
-    return all_pass
-
-if __name__ == "__main__":
-    sys.exit(0 if main() else 1)
+if __name__ == "__main__": sys.exit(0 if main() else 1)

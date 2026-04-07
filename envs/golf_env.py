@@ -10,6 +10,7 @@ Features:
   - Aerodynamic drag on the ball (quadratic, no lift/spin)
   - Terrain zone detection (fairway, green, sand, rough/OOB)
   - Rolling deceleration (surface-dependent braking force)
+  - Hole completion: ball stops when it enters hole area
 """
 
 import numpy as np
@@ -37,6 +38,9 @@ ROLLING_DECEL = {
     TERRAIN_ROUGH:   3.5,
     TERRAIN_TEE:     1.5,
 }
+
+# ── Hole dimensions ────────────────────────────────────────────────
+HOLE_RADIUS = 0.054   # standard golf hole radius (108mm diameter)
 
 
 class TerrainMap:
@@ -106,17 +110,21 @@ class GolfSwingEnv:
         self.elbow_act = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, "elbow_torque")
         self.wrist_act = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, "wrist_torque")
 
+        # Ball free joint qvel indices (freejoint = 6 DOF: 3 translational + 3 rotational)
+        ball_jnt_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "ball_joint")
+        self.ball_qvel_start = self.model.jnt_dofadr[ball_jnt_id]
+
         self.step_count = 0
         self.ball_launched = False
         self.ball_launch_vel = None
         self.contact_detected = False
+        self.ball_in_hole = False
 
     def reset(self, elbow_init=None, wrist_init=None):
         mujoco.mj_resetData(self.model, self.data)
 
-        # Default: backswing position (arm up on -X side)
         if elbow_init is None:
-            elbow_init = 3 * np.pi / 4  # +135 deg
+            elbow_init = 3 * np.pi / 4
         if wrist_init is None:
             wrist_init = 0.0
 
@@ -131,10 +139,42 @@ class GolfSwingEnv:
         self.ball_launched = False
         self.ball_launch_vel = None
         self.contact_detected = False
+        self.ball_in_hole = False
 
         return self.get_obs()
 
+    def _freeze_ball(self):
+        """Zero out ball velocity to freeze it in place (when it enters the hole)."""
+        qv = self.ball_qvel_start
+        self.data.qvel[qv:qv+6] = 0.0
+        self.data.xfrc_applied[self.ball_body_id, :] = 0.0
+
+    def _check_hole(self):
+        """
+        Check if ball is within the hole area.
+        Counts as holed if the ball's XY position is within HOLE_RADIUS
+        of the hole center AND the ball is at ground level.
+        """
+        if self.ball_in_hole:
+            return True
+
+        ball_pos = self.data.xpos[self.ball_body_id]
+        ball_xy = ball_pos[:2]
+        dist = np.linalg.norm(ball_xy - self.hole_pos)
+
+        if dist < HOLE_RADIUS and ball_pos[2] < self.GROUND_Z_THRESH:
+            self.ball_in_hole = True
+            self._freeze_ball()
+            return True
+
+        return False
+
     def _apply_ball_forces(self):
+        # If ball is in hole, keep it frozen
+        if self.ball_in_hole:
+            self._freeze_ball()
+            return
+
         ball_pos = self.data.xpos[self.ball_body_id]
         ball_vel = self.data.cvel[self.ball_body_id][3:]
 
@@ -168,6 +208,7 @@ class GolfSwingEnv:
         contact_this_step = False
         for _ in range(self.ctrl_substeps):
             self._apply_ball_forces()
+            self._check_hole()
             mujoco.mj_step(self.model, self.data)
 
             if not self.contact_detected:
@@ -192,12 +233,14 @@ class GolfSwingEnv:
         ball_xy = obs["ball_pos"][:2]
         dist_to_hole = np.linalg.norm(ball_xy - self.hole_pos)
 
-        ball_stopped = self.ball_launched and ball_speed < 0.01
+        # Ball stopped naturally (not in hole)
+        ball_stopped = self.ball_launched and not self.ball_in_hole and ball_speed < 0.01
         if ball_stopped:
             done = True
 
-        hole_radius = 0.054
-        in_hole = dist_to_hole < hole_radius and obs["ball_pos"][2] < self.GROUND_Z_THRESH
+        # Ball in hole = immediate completion
+        if self.ball_in_hole:
+            done = True
 
         terrain_type = self.terrain.classify(ball_xy[0], ball_xy[1])
 
@@ -209,7 +252,7 @@ class GolfSwingEnv:
             "ball_speed": ball_speed,
             "dist_to_hole": dist_to_hole,
             "ball_stopped": ball_stopped,
-            "in_hole": in_hole,
+            "in_hole": self.ball_in_hole,
             "terrain": terrain_type,
             "done": done,
         }
