@@ -81,11 +81,11 @@ Course-specific MuJoCo models. Each adds an aim joint (turntable hinge for aimin
 ### `envs/golf_env.py`
 The Python environment that wraps MuJoCo. It loads an XML model and adds physics that can't be defined in XML alone:
 
-- **Aerodynamic drag** — Quadratic drag using the ball's velocity relative to the wind. A tailwind reduces drag, a headwind increases it, and a crosswind pushes the ball sideways.
-- **Slope-aware rolling deceleration** — Uses MuJoCo's contact normals to project braking force along the surface plane, scaled by cos(slope angle). Different terrain types apply different deceleration rates (green: 0.8 m/s², fairway: 1.5, rough: 3.5, sand: 8.0).
-- **Persistent ground detection** — A `ball_landed` flag activates on first ground contact after launch and stays on permanently, preventing contact flickering from adding noise to the cost function.
-- **Hole completion** — The ball freezes when its XY distance to the hole is within `HOLE_RADIUS` and it has landed.
-- **Wind** — Optional 3D wind vector passed at construction. Defaults to zero.
+- **Aerodynamic drag**
+- **Slope-aware rolling deceleration**
+- **Persistent ground detection**
+- **Hole completion**
+- **Wind**
 
 The environment provides `reset()`, `step(action)`, and `get_obs()` methods used by both the optimizer and visualizer.
 
