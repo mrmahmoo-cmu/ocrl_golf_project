@@ -2,8 +2,8 @@
 visualize_result.py
 
 Loads a saved optimization result and replays the optimized swing
-in the MuJoCo viewer using the SAME GolfSwingEnv class that the
-optimizer uses. This guarantees identical physics.
+in the MuJoCo viewer using the same GolfSwingEnv class that the
+optimizer uses, guaranteeing identical physics
 
 Usage:
     py -3.13 scripts/visualize_result.py
@@ -82,8 +82,7 @@ def main():
     print()
 
     # ── Create the SAME environment the optimizer used ──
-    # This is the key fix: instead of reimplementing physics,
-    # we use the actual GolfSwingEnv with identical parameters.
+    # use the GolfSwingEnv
     env = GolfSwingEnv(
         ctrl_dt=0.001,          # fine timestep for smooth visual
         max_time=MAX_TIME,
@@ -103,9 +102,8 @@ def main():
 
     # ── Launch viewer using the env's own model and data ──
     # The viewer references env.data directly, so when env.step()
-    # updates the physics state, viewer.sync() shows the new state.
+    # updates the physics state, viewer.sync() shows the new state
     with mujoco.viewer.launch_passive(env.model, env.data) as viewer:
-        # Camera: look at midpoint between tee and hole
         mid_x = hole_pos[0] / 2
         mid_y = hole_pos[1] / 2
         viewer.cam.azimuth = 135

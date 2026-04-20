@@ -3,7 +3,7 @@ optimize_course1.py
 
 CMA-ES optimization for Course 1: Straight Shot.
 Simple course, no wind, no terrain landing penalties.
-Should converge quickly to a hole-in-one.
+Converges quickly to a hole-in-one.
 
 Usage:
     py -3.13 scripts/optimize_course1.py

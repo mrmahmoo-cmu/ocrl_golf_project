@@ -16,17 +16,17 @@
 
   <worldbody>
 
-    <!-- ============ ROUGH BASE ============ -->
+    <!-- ROUGH BASE -->
     <geom name="rough_base" type="box" pos="22 4 -0.27" size="28 16 0.25"
           rgba="0.16 0.38 0.10 1" friction="0.8 0.02 0.0005"/>
 
-    <!-- ============ TEE BOX ============ -->
+    <!-- TEE BOX -->
     <geom name="tee_box" type="box" pos="0.5 0 -0.22" size="2.5 2.5 0.27"
           rgba="0.38 0.78 0.38 1" friction="0.4 0.005 0.0001"/>
     <geom name="tee_marker" type="cylinder" pos="0.05 0 0.06" size="0.05 0.005"
           rgba="0.95 0.25 0.25 1" contype="0" conaffinity="0"/>
 
-    <!-- ============ FAIRWAY ============ -->
+    <!-- FAIRWAY -->
     <geom name="fairway1" type="box" pos="14 0 -0.22" size="11 4.5 0.27"
           rgba="0.30 0.68 0.30 1" friction="0.4 0.005 0.0001"/>
     <geom name="fairway2" type="box" pos="29 3.5 -0.22" size="4 5.5 0.27"
@@ -34,25 +34,25 @@
     <geom name="fairway_approach" type="box" pos="35.5 5 -0.22" size="2.5 4.5 0.27"
           rgba="0.30 0.68 0.30 1" friction="0.35 0.005 0.0001"/>
 
-    <!-- ============ HILL ============ -->
+    <!-- HILL -->
     <geom name="hill" type="ellipsoid" pos="15 0 0.05" size="6 4 0.5"
           rgba="0.32 0.70 0.32 1" friction="0.45 0.005 0.0001"/>
 
-    <!-- ============ GREEN ============ -->
+    <!-- GREEN -->
     <geom name="green" type="box" pos="38 8 -0.22" size="5.5 5 0.27"
           rgba="0.25 0.85 0.30 1" friction="0.15 0.002 0.00005"/>
 
-    <!-- ============ SAND BUNKERS ============ -->
+    <!-- SAND BUNKERS -->
     <geom name="sand1" type="box" pos="25.5 1 -0.22" size="2.5 2 0.28"
           rgba="0.94 0.88 0.62 1" friction="1.2 0.05 0.001"/>
     <geom name="sand2" type="box" pos="35 11 -0.22" size="2 1.5 0.28"
           rgba="0.94 0.88 0.62 1" friction="1.2 0.05 0.001"/>
 
-    <!-- ============ FALLBACK GROUND ============ -->
+    <!-- FALLBACK GROUND -->
     <geom name="ground" type="plane" size="100 100 0.1" pos="0 0 -0.52"
           rgba="0.12 0.32 0.08 1" friction="0.8 0.02 0.0005"/>
 
-    <!-- ============ TREES ============ -->
+    <!-- TREES -->
     <body name="tree1" pos="-2 -5 0">
       <geom type="cylinder" pos="0 0 0.6" size="0.15 0.6" rgba="0.45 0.30 0.15 1" contype="0" conaffinity="0"/>
       <geom type="sphere" pos="0 0 1.5" size="0.8" rgba="0.12 0.45 0.08 1" contype="0" conaffinity="0"/>
@@ -86,7 +86,7 @@
       <geom type="sphere" pos="0 0 1.5" size="0.8" rgba="0.14 0.47 0.09 1" contype="0" conaffinity="0"/>
     </body>
 
-    <!-- ============ HOLE ============ -->
+    <!-- HOLE -->
     <body name="hole" pos="38.0 8.0 0.06">
       <geom name="hole_circle" type="cylinder" size="0.1 0.002"
             rgba="0.05 0.05 0.05 1" contype="0" conaffinity="0"/>
@@ -96,11 +96,11 @@
             rgba="0.95 0.15 0.15 1" contype="0" conaffinity="0"/>
     </body>
 
-    <!-- ============ LIGHTS ============ -->
+    <!-- LIGHTS -->
     <light pos="20 0 20" dir="0 0.1 -1" diffuse="1.0 1.0 0.95" ambient="0.4 0.4 0.4"/>
     <light pos="38 8 15" dir="0 0 -1" diffuse="0.5 0.5 0.5"/>
 
-    <!-- ============ ARM WITH AIM JOINT ============ -->
+    <!-- ARM WITH AIM JOINT -->
     <body name="turntable" pos="0 0 1.48">
       <joint name="aim" type="hinge" axis="0 0 1" range="-90 90" limited="true" damping="1000.0" armature="1.0"/>
       <geom type="sphere" size="0.04" rgba="0.5 0.5 0.5 1" mass="0.01" contype="0" conaffinity="0"/>
@@ -120,7 +120,7 @@
       </body>
     </body>
 
-    <!-- ============ GOLF BALL ============ -->
+    <!-- GOLF BALL -->
     <body name="ball" pos="0.05 0 0.0214">
       <freejoint name="ball_joint"/>
       <geom name="ball_geom" type="sphere" size="0.0214" rgba="1 1 1 1" mass="0.0459" friction="0.5 0.005 0.0001"/>

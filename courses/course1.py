@@ -3,7 +3,7 @@ Course 1: "Straight Shot"
 
 A simple ~35m straight course with one sand bunker guarding
 the approach. No dogleg, no wind, no terrain landing penalties.
-The easiest course — demonstrates basic CMA-ES optimization.
+The easiest course — shows basic CMA-ES optimization.
 
 Features:
   - Straight fairway from tee to green

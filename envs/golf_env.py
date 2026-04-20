@@ -14,14 +14,14 @@ import numpy as np
 import mujoco
 from pathlib import Path
 
-# ── Aerodynamic constants ──────────────────────────────────────────
+# Aerodynamic constants
 AIR_DENSITY = 1.225
 BALL_RADIUS = 0.0214
 BALL_AREA = np.pi * BALL_RADIUS ** 2
 CD_GOLF_BALL = 0.25
 DRAG_K = 0.5 * AIR_DENSITY * CD_GOLF_BALL * BALL_AREA
 
-# ── Terrain types and rolling deceleration ─────────────────────────
+# Terrain types and rolling deceleration
 TERRAIN_FAIRWAY = "fairway"
 TERRAIN_GREEN   = "green"
 TERRAIN_SAND    = "sand"
@@ -36,7 +36,7 @@ ROLLING_DECEL = {
     TERRAIN_TEE:     1.5,
 }
 
-# ── Hole dimensions ────────────────────────────────────────────────
+# Hole dimensions
 HOLE_RADIUS = 0.1
 
 
@@ -73,7 +73,6 @@ class GolfSwingEnv:
         """
         Args:
             wind: Wind velocity as [wx, wy, wz] in m/s, or None for no wind.
-                  Example: [3.0, 1.0, 0.0] = 3 m/s in +X, 1 m/s in +Y.
                   Drag is computed using ball velocity relative to the air,
                   so a tailwind reduces drag and a headwind increases it.
         """
@@ -93,7 +92,7 @@ class GolfSwingEnv:
         self.enable_drag = enable_drag
         self.enable_rolling_decel = enable_rolling_decel
 
-        # Wind velocity (3D vector, m/s)
+        # Wind velocity
         if wind is not None:
             self.wind = np.array(wind, dtype=np.float64)
         else:
@@ -200,7 +199,7 @@ class GolfSwingEnv:
         Returns:
             (on_ground, normal): on_ground is bool, normal is 3D unit vector
             pointing away from the surface (upward on flat ground).
-            If not on ground, normal is [0, 0, 1] (default upward).
+            If not on ground, normal is [0, 0, 1] (default upward)
         """
         for i in range(self.data.ncon):
             c = self.data.contact[i]
@@ -255,7 +254,7 @@ class GolfSwingEnv:
             self.ball_landed = True
             self.ball_landed_terrain = self.terrain.classify(ball_pos[0], ball_pos[1])
 
-        # ── Aerodynamic drag (with wind) ──
+        # Aerodynamic drag (with wind)
         relative_vel = ball_vel - self.wind
         rel_speed = np.linalg.norm(relative_vel)
         if self.enable_drag and rel_speed > 1e-6:
@@ -265,7 +264,7 @@ class GolfSwingEnv:
         else:
             self.data.xfrc_applied[self.ball_body_id, :3] = 0.0
 
-        # ── Rolling deceleration ──
+        # Rolling deceleration
         # Applied continuously once the ball has landed (no flickering)
         # Uses contact normal when available, falls back to vertical
         if self.enable_rolling_decel and self.ball_landed:

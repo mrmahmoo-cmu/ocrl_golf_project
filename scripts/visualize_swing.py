@@ -7,9 +7,6 @@ Opens a MuJoCo viewer window and runs the full simulation visually:
   - Rolling deceleration on terrain
   - Hole completion (ball freezes at hole)
 
-Usage:
-    py -3.13 scripts/visualize_swing.py
-
 Controls in the viewer window:
     Space     = pause/unpause
     Backspace = reset
@@ -33,7 +30,7 @@ from envs.golf_env import (
     TerrainMap, GolfSwingEnv,
 )
 
-# ── Configuration ──────────────────────────────────────────────────
+# Configuration
 HOLE_POS = np.array([65.0, 0.0])     # where to place the hole (adjust as needed)
 PLAYBACK_SPEED = 0.5                   # 1.0 = real-time, 0.5 = half speed, 2.0 = double
 MAX_TIME = 15.0                        # seconds of simulation
