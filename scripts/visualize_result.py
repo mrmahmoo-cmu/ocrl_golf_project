@@ -36,7 +36,7 @@ def main():
     if len(sys.argv) > 1:
         result_path = sys.argv[1]
     else:
-        result_path = "courses/course1_result.npz"
+        result_path = "courses/course2_result.npz"
 
     print(f"Loading results from: {result_path}")
     data_file = np.load(result_path, allow_pickle=True)
