@@ -108,8 +108,6 @@ Full physics test using the base model. Compares runs with and without drag/roll
 
 ## Optimization Method: CMA-ES
 
-CMA-ES (Covariance Matrix Adaptation Evolution Strategy) is a derivative-free optimization algorithm. It maintains a multivariate Gaussian distribution over the search space and updates the distribution's mean and covariance matrix based on which candidates score best each generation. This lets it learn correlations between decision variables — for example, that higher backswing angles pair with lower torques.
-
 CMA-ES is used instead of gradient-based methods because the cost function is non-differentiable: contact events, terrain transitions, and hole completion create discontinuities that prevent gradient computation.
 
 ## Physics Summary
