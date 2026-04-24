@@ -1,30 +1,16 @@
 """
 Course 2: "Gentle Dogleg"
 
-A ~39m course with a dogleg right, hill, sand bunkers, crosswind,
-and landed-terrain penalties. More challenging than Course 1.
-
-Features:
-  - Rounded hill on the fairway
-  - Sand bunker blocking the straight path
-  - Greenside sand bunker
-  - Dogleg bends right toward hole
-  - Crosswind: 1.5 m/s from -Y (pushes ball toward +Y)
-  - Landed-terrain penalties discourage rough/sand landings
-
-Distance: ~39m
-Hole:     (38, 8)
-Goal:     Hole in one
+39m dogleg course with hill, bunkers, crosswind, and
+landed-terrain penalties. Optimizes 3 variables.
 """
 
 import numpy as np
 from pathlib import Path
 
 HOLE_POS = np.array([38.0, 8.0])
-BALL_START = np.array([0.05, 0.0, 0.0214])
 MODEL_PATH = Path(__file__).parent.parent / "models" / "course2.xml"
 
-# Crosswind: 1.5 m/s pushing toward +Y
 WIND = np.array([0.0, 1.5, 0.0])
 
 TERRAIN_ZONES = [
@@ -37,6 +23,6 @@ TERRAIN_ZONES = [
     (33.0,  38.0,   0.0,  8.0, "fairway"),
 ]
 
-STRAIGHT_LINE_DIST = np.linalg.norm(HOLE_POS - BALL_START[:2])
+STRAIGHT_LINE_DIST = np.linalg.norm(HOLE_POS - np.array([0.05, 0.0]))
 AIM_ANGLE_TO_HOLE = np.arctan2(HOLE_POS[1], HOLE_POS[0])
 HOLE_RADIUS = 0.1
