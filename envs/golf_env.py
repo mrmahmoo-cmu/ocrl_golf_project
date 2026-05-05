@@ -26,6 +26,7 @@ TERRAIN_GREEN   = "green"
 TERRAIN_SAND    = "sand"
 TERRAIN_ROUGH   = "rough"
 TERRAIN_TEE     = "tee"
+TERRAIN_WATER  = "water"    # Bashar added water for course 3
 
 ROLLING_DECEL = {
     TERRAIN_FAIRWAY: 2.0,
@@ -33,6 +34,7 @@ ROLLING_DECEL = {
     TERRAIN_SAND:    8.0,
     TERRAIN_ROUGH:   5.0,
     TERRAIN_TEE:     2.0,
+    TERRAIN_WATER: 20.0,        # Bashar added for water (for physics)
 }
 
 # ── Hole dimensions ────────────────────────────────────────────────
