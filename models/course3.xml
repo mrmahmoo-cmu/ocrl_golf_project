@@ -49,9 +49,10 @@
     <geom name="green" type="box" pos="116 16 -0.22" size="5.0 4.0 0.27"
           rgba="0.25 0.85 0.30 1" friction="0.15 0.002 0.00005"/>
 
-    <!-- ============ POND LEFT / FRONT-LEFT OF GREEN ============ -->
-    <geom name="pond" type="box" pos="111 9 -0.20" size="10 4.8 0.08"
-          rgba="0.05 0.22 0.75 0.85" friction="0.05 0.001 0.00001"/>
+   <!-- ============ POND LEFT / FRONT-LEFT OF GREEN ============ -->
+    <geom name="pond" type="box" pos="111 10 0.09" size="11 5.5 0.006"
+          rgba="0.00 0.15 1.00 1"
+          contype="0" conaffinity="0"/>
 
     <!-- ============ BUNKERS ============ -->
     <geom name="bunker_left_landing" type="box" pos="67 -2.5 -0.22" size="3.2 1.8 0.28"
