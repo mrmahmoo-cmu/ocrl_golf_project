@@ -121,7 +121,7 @@ def run_cmaes(x0, sigma0, seed, max_evals, label=""):
 
 def main():
     print("=" * 60)
-    print("COURSE 2: Gentle Dogleg — CMA-ES (3 variables)")
+    print("COURSE 2: Gentle Dogleg — CMA-ES")
     print("=" * 60)
     print(f"Hole:            ({HOLE_POS[0]}, {HOLE_POS[1]})")
     print(f"Distance:        {STRAIGHT_LINE_DIST:.1f}m")

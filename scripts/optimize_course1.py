@@ -22,7 +22,7 @@ from courses.course1 import (
     STRAIGHT_LINE_DIST, AIM_ANGLE_TO_HOLE,
 )
 
-# ── Bounds ──────────────────────────────────────────────────────────
+# Bounds
 # [speed (m/s), vert_angle (rad), horiz_angle (rad)]
 BOUNDS_LOWER = [5.0,  np.radians(5),  np.radians(-15)]
 BOUNDS_UPPER = [30.0, np.radians(60), np.radians(15)]
@@ -115,7 +115,7 @@ def run_cmaes(x0, sigma0, seed, max_evals, label=""):
 
 def main():
     print("=" * 60)
-    print("COURSE 1: Straight Shot — CMA-ES (3 variables)")
+    print("COURSE 1: Straight Shot — CMA-ES")
     print("=" * 60)
     print(f"Hole:            ({HOLE_POS[0]}, {HOLE_POS[1]})")
     print(f"Distance:        {STRAIGHT_LINE_DIST:.1f}m")

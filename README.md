@@ -1,6 +1,6 @@
 # Golf Trajectory Optimization — MuJoCo + CMA-ES
 
-A golf ball is launched with optimized speed and angles across progressively harder courses. MuJoCo handles the physics (contact, gravity, collisions, bouncing), and CMA-ES optimizes the launch parameters to achieve a hole-in-one.
+Optimizes golf shot parameters across three progressively harder courses using CMA-ES. MuJoCo simulates ball physics (drag, wind, terrain friction, bouncing, rolling), and CMA-ES finds the launch speed and angles that get the ball into the hole.
 
 ## Project Structure
 
@@ -8,20 +8,23 @@ A golf ball is launched with optimized speed and angles across progressively har
 golf_project/
 ├── models/
 │   ├── course1.xml                # Course 1: Straight Shot
-│   └── course2.xml                # Course 2: Gentle Dogleg
+│   ├── course2.xml                # Course 2: Gentle Dogleg
+│   └── course3.xml                # Course 3: White Dogwood
 ├── envs/
 │   ├── __init__.py
-│   └── golf_env.py                # Physics environment (drag, rolling, wind, terrain)
+│   └── golf_env.py                # Physics environment
 ├── courses/
 │   ├── __init__.py
-│   ├── course1.py                 # Course 1 config (hole pos, terrain zones)
-│   └── course2.py                 # Course 2 config (+ wind, landed-terrain penalties)
+│   ├── course1.py                 # Course 1 config
+│   ├── course2.py                 # Course 2 config
+│   └── course3.py                 # Course 3 config
 ├── scripts/
-│   ├── test_basic_swing.py        # Sanity check: does the ball launch correctly?
-│   ├── test_phase2.py             # Full physics test: drag, terrain, hole completion
-│   ├── visualize_result.py        # Replay optimized results in MuJoCo viewer
 │   ├── optimize_course1.py        # CMA-ES optimizer for Course 1
-│   └── optimize_course2.py        # CMA-ES optimizer for Course 2
+│   ├── optimize_course2.py        # CMA-ES optimizer for Course 2
+│   ├── optimize_course3.py        # Multi-stroke optimizer for Course 3
+│   ├── visualize_result.py        # Replay results in MuJoCo viewer
+│   ├── test_course3_load.py       # Smoke test for Course 3
+│   └── view_course3.py            # View Course 3 layout (no optimization)
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -37,90 +40,60 @@ Requires Python 3.10+.
 
 ## How to Run
 
-**Run the optimizer for a course:**
+**Optimize a course:**
 ```bash
 cd golf_project
 py -3.13 scripts/optimize_course1.py
 py -3.13 scripts/optimize_course2.py
+py -3.13 scripts/optimize_course3.py
 ```
-The optimizer prints progress each generation (best distance to hole, elapsed time) and saves the result to `courses/courseN_result.npz` when finished.
+Each optimizer prints generation-by-generation progress and saves results to `courses/courseN_result.npz`.
 
-**Visualize the optimized result:**
+**Visualize results:**
 ```bash
-py -3.13 scripts/visualize_result.py                               # Course 1 (default)
-py -3.13 scripts/visualize_result.py courses/course2_result.npz    # Course 2
+py -3.13 scripts/visualize_result.py
 ```
-Opens a MuJoCo viewer. Press Enter in the terminal to launch the ball. The viewer shows ball flight, bouncing, and rolling. The terminal prints launch and landing events. Close the viewer window to exit.
-
-Viewer controls: left-click drag to rotate, scroll to zoom, right-click drag to pan.
-
-**Run the test suite (no viewer, terminal output only):**
-```bash
-py -3.13 scripts/test_basic_swing.py
-py -3.13 scripts/test_phase2.py
-```
+Prompts you to select a course (1, 2, or 3), then opens the MuJoCo viewer and replays the optimized shot(s). For Course 3, each stroke is shown sequentially with a prompt between strokes. Viewer controls: left-click drag to rotate, scroll to zoom, right-click drag to pan.
 
 ## Courses
 
-### Course 1: "Straight Shot"
-A simple 35m straight course with one sand bunker near the hole. No wind, no dogleg. The optimizer converges to a hole-in-one within a few generations. Hole at (35, 0).
+**Course 1: "Straight Shot"** — 35m straight course with one sand bunker. No wind. Serves as the baseline to verify the optimization method works. Goal: hole-in-one.
 
-### Course 2: "Gentle Dogleg"
-A 39m course that bends right toward the hole at (38, 8). Features a hill on the fairway, two sand bunkers, a 1.5 m/s crosswind, and landed-terrain penalties that discourage the ball from landing in rough or sand. The optimizer must account for wind drift when choosing the launch angle.
+**Course 2: "Gentle Dogleg"** — 39m course that bends right with a hill, two sand bunkers, and a crosswind. Adds wind physics and landed-terrain penalties. The optimizer must compensate for wind drift. Goal: hole-in-one.
 
-## What Each File Does
+**Course 3: "White Dogwood"** — 117m course inspired by Augusta National Hole 11. Features a winding fairway, a water hazard near the green, bunkers, mounds, wind, and decorative trees. Too long for a single shot, so the optimizer plans multiple strokes sequentially, avoiding the pond and minimizing total strokes. Goal: complete in as few strokes as possible.
 
-### `models/course1.xml` / `models/course2.xml`
-Course-specific MuJoCo models. Each defines the terrain layout (fairway, green, sand, rough), decorative trees (cylinder trunks + sphere canopies), a flag pole at the hole, a tee marker, and the golf ball with a free joint. All decorative elements use `contype="0" conaffinity="0"` so the ball passes through them. There is no robot arm — the ball's initial velocity is set directly by the optimizer.
+## File Descriptions
 
-### `envs/golf_env.py`
-The Python environment that wraps MuJoCo. It loads an XML model, launches the ball with a specified speed and angle, and applies physics that can't be defined in XML alone:
+**`envs/golf_env.py`** — Core physics environment. Wraps MuJoCo and adds aerodynamic drag (wind-relative), slope-aware rolling deceleration by terrain type, persistent ground detection, and hole completion logic. Exposes `reset()`, `launch_ball()`, and `step()` methods. No robot arm — the ball's initial velocity is set directly.
 
-- **Aerodynamic drag** — Quadratic drag using the ball's velocity relative to the wind. A tailwind reduces drag, a headwind increases it, and a crosswind pushes the ball sideways.
-- **Slope-aware rolling deceleration** — Uses MuJoCo's contact normals to project braking force along the surface plane, scaled by cos(slope angle). Different terrain types apply different deceleration rates (green: 0.8 m/s², fairway: 2.0, rough: 5.0, sand: 8.0).
-- **Persistent ground detection** — A `ball_landed` flag activates on first ground contact after launch and stays on permanently, preventing contact flickering from adding noise to the cost function.
-- **Hole completion** — The ball freezes when its XY distance to the hole is within `HOLE_RADIUS`, it has landed at least once, and it is currently in contact with the ground.
-- **Wind** — 3D wind vector passed at construction. Defaults to zero.
+**`courses/course1.py`, `course2.py`, `course3.py`** — Configuration for each course: hole position, terrain zone boundaries, model path, and wind vector. Terrain zones are axis-aligned rectangles checked in priority order (first match wins).
 
-The environment provides `reset()`, `launch_ball(speed, vert_angle, horiz_angle)`, and `step()` methods used by both the optimizer and visualizer.
+**`models/course1.xml`, `course2.xml`, `course3.xml`** — MuJoCo model files defining terrain geometry, decorative elements (trees, flag poles, tee markers), lighting, and the golf ball. Decorative elements have collisions disabled so the ball passes through them.
 
-### `courses/course1.py` / `courses/course2.py`
-Course configuration files. Each defines the hole position, terrain zone boundaries (axis-aligned rectangles, first match wins), and model path. Course 2 additionally defines a wind vector.
+**`scripts/optimize_course1.py`, `optimize_course2.py`** — Single-shot CMA-ES optimizers. Three decision variables per shot: launch speed, vertical angle, horizontal angle. Use restarts with shrinking search radius if the initial run stalls.
 
-### `scripts/optimize_course1.py` / `scripts/optimize_course2.py`
-CMA-ES optimizers. Each parameterizes the shot as **3 decision variables**: launch speed (m/s), vertical angle (radians), and horizontal angle (radians). The cost function runs a full MuJoCo simulation and returns distance to the hole, with penalties for timeout and landing on unfavorable terrain.
+**`scripts/optimize_course3.py`** — Multi-stroke CMA-ES optimizer. Optimizes one stroke at a time from the ball's current position, with early stopping per stroke when improvement stagnates. Includes water hazard penalties and penalty drops.
 
-CMA-ES with restarts is used: the initial run explores broadly, and subsequent restarts refine around the best solution found with progressively smaller search radii. Course 2 additionally passes wind to the simulation and penalizes hole-in-ones that land in rough or sand.
+**`scripts/visualize_result.py`** — Loads saved results and replays them in the MuJoCo viewer using the same `GolfEnv` class as the optimizer, guaranteeing identical physics. Handles both single-shot and multi-stroke formats.
 
-### `scripts/visualize_result.py`
-Replays saved optimization results in the MuJoCo viewer. Creates a `GolfEnv` instance with the same parameters used during optimization (model, terrain zones, wind), guaranteeing identical physics. Accepts an optional command-line argument for the result file path; defaults to Course 1.
+**`scripts/test_course3_load.py`** — Smoke test that verifies Course 3's model loads and a basic shot runs without errors.
 
-### `scripts/test_basic_swing.py`
-Basic test script. Launches the ball at 20 m/s, 30° up, straight ahead with no drag. Verifies: ball launches, gains height, moves forward in +X, and returns to ground.
+**`scripts/view_course3.py`** — Opens Course 3 in the MuJoCo viewer for visual inspection without running any optimization.
 
-### `scripts/test_phase2.py`
-Full physics test. Compares runs with and without drag/rolling to verify each system works. Checks: drag reduces travel distance, ball stops on its own, terrain zones classify correctly, ball freezes at the hole.
+## Optimization Method
 
-## Optimization: CMA-ES
+CMA-ES (Covariance Matrix Adaptation Evolution Strategy) is a derivative-free optimizer that samples candidate solutions from a Gaussian distribution, evaluates them by running full physics simulations, and adapts the distribution toward better-scoring candidates. It handles the non-differentiable cost function (contact bouncing, terrain transitions, hole detection) without requiring gradients.
 
-CMA-ES is used instead of gradient-based methods because the cost function is non-differentiable — contact bouncing, terrain transitions, and hole completion create discontinuities.
+Each shot is parameterized by three variables: launch speed, vertical angle, and horizontal angle. The cost function is the ball's final distance to the hole, with additive penalties for landing on sand, rough, or water. For Course 3, strokes are optimized greedily — each stroke minimizes remaining distance to hole from the current ball position.
 
-With only 3 variables, the optimizer converges in seconds rather than minutes. A population of 16 candidates per generation works well.
+## Physics
 
-## Physics Summary
+All ball physics are applied in Python on top of MuJoCo's contact solver:
 
-| Feature | Implementation |
-|---|---|
-| Contact & collisions | MuJoCo solver (solref/solimp parameters) |
-| Air drag | Quadratic, Cd=0.25, wind-relative velocity |
-| Rolling friction | Terrain-dependent braking force, slope-aware |
-| Ball bounce | MuJoCo contact elasticity (natural, not scripted) |
-| Wind | Modifies effective drag via relative velocity model |
-| Ground detection | MuJoCo contact list, persistent `ball_landed` flag |
-| Hole completion | XY distance < radius + currently on ground → freeze ball |
-
-## Current Status
-
-- Course 1: Straight Shot — hole-in-one achieved (~4 generations, ~20 seconds)
-- Course 2: Gentle Dogleg with wind — hole-in-one achieved (~4 generations, ~22 seconds)
-- Course 3: Multi-stroke course
+- **Drag**: Quadratic, computed from velocity relative to wind
+- **Rolling**: Terrain-dependent braking force projected along the surface plane using contact normals
+- **Bounce**: Handled naturally by MuJoCo's contact elasticity
+- **Wind**: Shifts the reference frame for drag computation
+- **Ground detection**: Persistent flag prevents contact flickering noise
+- **Hole detection**: Requires ball to be within hole radius AND currently touching the ground

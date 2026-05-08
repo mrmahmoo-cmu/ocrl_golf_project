@@ -29,7 +29,7 @@
     <geom name="tee_marker" type="cylinder" pos="0.05 0 0.06" size="0.05 0.005"
           rgba="0.95 0.25 0.25 1" contype="0" conaffinity="0"/>
 
-    <!-- ============ FAIRWAY: LONG LEFT-TO-RIGHT SHAPE ============ -->
+    <!-- ============ FAIRWAY ============ -->
     <geom name="fairway_drive" type="box" pos="22 0 -0.22" size="20 4.2 0.27"
           rgba="0.30 0.68 0.30 1" friction="0.42 0.005 0.0001"/>
     <geom name="fairway_landing" type="box" pos="52 3.5 -0.22" size="18 4.8 0.27"
@@ -49,10 +49,12 @@
     <geom name="green" type="box" pos="116 16 -0.22" size="5.0 4.0 0.27"
           rgba="0.25 0.85 0.30 1" friction="0.15 0.002 0.00005"/>
 
-   <!-- ============ POND LEFT / FRONT-LEFT OF GREEN ============ -->
-    <geom name="pond" type="box" pos="111 10 0.09" size="11 5.5 0.006"
-          rgba="0.00 0.15 1.00 1"
-          contype="0" conaffinity="0"/>
+    <!-- ============ POND: physical surface the ball lands on ============ -->
+    <!-- Thin box at ground level with very high friction to trap the ball.
+         The ball physically contacts this surface and stops quickly. -->
+    <geom name="pond" type="box" pos="111 10 -0.21" size="11 5.5 0.28"
+          rgba="0.00 0.15 1.00 0.85"
+          friction="2.0 0.1 0.005"/>
 
     <!-- ============ BUNKERS ============ -->
     <geom name="bunker_left_landing" type="box" pos="67 -2.5 -0.22" size="3.2 1.8 0.28"
@@ -62,7 +64,7 @@
 
     <!-- ============ HOLE ============ -->
     <body name="hole" pos="116.0 16.0 0.06">
-      <geom name="hole_circle" type="cylinder" size="0.1 0.002"
+      <geom name="hole_circle" type="cylinder" size="0.054 0.002"
             rgba="0.02 0.02 0.02 1" contype="0" conaffinity="0"/>
       <geom name="flag_pole" type="cylinder" pos="0 0 0.75" size="0.015 0.75"
             rgba="0.90 0.90 0.90 1" contype="0" conaffinity="0"/>
@@ -70,7 +72,7 @@
             rgba="0.95 0.15 0.15 1" contype="0" conaffinity="0"/>
     </body>
 
-    <!-- ============ TREES / WHITE DOGWOOD-INSPIRED DECORATION ============ -->
+    <!-- ============ TREES ============ -->
     <body name="tree1" pos="12 -8 0">
       <geom type="cylinder" pos="0 0 0.7" size="0.12 0.7" rgba="0.45 0.30 0.15 1" contype="0" conaffinity="0"/>
       <geom type="sphere" pos="0 0 1.65" size="0.85" rgba="0.13 0.44 0.09 1" contype="0" conaffinity="0"/>
@@ -101,7 +103,7 @@
       <geom type="sphere" pos="0 0 1.75" size="0.95" rgba="0.10 0.40 0.07 1" contype="0" conaffinity="0"/>
     </body>
 
-    <!-- ============ BRIGHTER LIGHTING ============ -->
+    <!-- ============ LIGHTS ============ -->
     <light name="main_sun" pos="55 -20 35" dir="-0.2 0.2 -1"
            diffuse="1.2 1.2 1.1" ambient="0.55 0.55 0.55" specular="0.3 0.3 0.3"/>
     <light name="tee_light" pos="0 0 8" dir="0 0 -1"

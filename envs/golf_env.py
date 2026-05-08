@@ -1,26 +1,19 @@
 """
 Golf Environment — Direct Launch
-
-The ball is launched with a specified speed, vertical angle, and
-horizontal angle. No robot arm — the initial velocity is set directly
-on the ball's free joint. All ball physics (drag, wind, rolling,
-terrain, hole detection) remain identical.
-
-This reduces the optimization from 16 variables to 3.
 """
 
 import numpy as np
 import mujoco
 from pathlib import Path
 
-# ── Aerodynamic constants ──────────────────────────────────────────
+# Aerodynamic constants
 AIR_DENSITY = 1.225
 BALL_RADIUS = 0.0214
 BALL_AREA = np.pi * BALL_RADIUS ** 2
 CD_GOLF_BALL = 0.25
 DRAG_K = 0.5 * AIR_DENSITY * CD_GOLF_BALL * BALL_AREA
 
-# ── Terrain types and rolling deceleration ─────────────────────────
+# Terrain types and rolling deceleration
 TERRAIN_FAIRWAY = "fairway"
 TERRAIN_GREEN   = "green"
 TERRAIN_SAND    = "sand"
@@ -37,8 +30,8 @@ ROLLING_DECEL = {
     TERRAIN_WATER: 20.0,        # Bashar added for water (for physics)
 }
 
-# ── Hole dimensions ────────────────────────────────────────────────
-HOLE_RADIUS = 0.1
+# Hole dimensions
+HOLE_RADIUS = 0.054
 
 
 class TerrainMap:
@@ -207,7 +200,7 @@ class GolfEnv:
         else:
             self.data.xfrc_applied[self.ball_body_id, :3] = 0.0
 
-        # Rolling deceleration (slope-aware)
+        # Rolling deceleration (slope-sensitive)
         if self.enable_rolling_decel and self.ball_landed:
             speed = np.linalg.norm(ball_vel)
             if speed > 0.01:

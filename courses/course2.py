@@ -25,4 +25,4 @@ TERRAIN_ZONES = [
 
 STRAIGHT_LINE_DIST = np.linalg.norm(HOLE_POS - np.array([0.05, 0.0]))
 AIM_ANGLE_TO_HOLE = np.arctan2(HOLE_POS[1], HOLE_POS[0])
-HOLE_RADIUS = 0.1
+HOLE_RADIUS = 0.054

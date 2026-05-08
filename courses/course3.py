@@ -3,7 +3,7 @@ Course 3: "White Dogwood"
 
 Long multi-stroke course inspired by Augusta National Hole 11.
 Features a left-to-right fairway shape, approach hazards, pond near
-the green, bunkers, and a longer distance requiring multiple shots.
+the green, bunkers, wind, and a longer distance requiring multiple shots.
 """
 
 import numpy as np
@@ -12,16 +12,15 @@ from pathlib import Path
 HOLE_POS = np.array([116.0, 16.0])
 MODEL_PATH = Path(__file__).parent.parent / "models" / "course3.xml"
 
-# Start with no wind. Add wind later after the course works.
-WIND = np.array([0.0, 0.0, 0.0])
+# Light crosswind + slight headwind
+WIND = np.array([-1.0, 1.5, 0.0])
 
 TERRAIN_ZONES = [
     # Tee
     (-2.0,    3.0,  -2.5,   2.5, "tee"),
 
-    # Water / pond near green
-    # Put water before green/fairway so it gets detected first.
-    (101.0, 121.0,   4.2,  13.8, "water"),
+    # Water / pond near green (checked before green/fairway)
+    (100.0, 122.0,   4.5,  15.5, "water"),
 
     # Sand bunkers
     (63.8,   70.2,  -4.3,  -0.7, "sand"),
@@ -39,4 +38,4 @@ TERRAIN_ZONES = [
 
 STRAIGHT_LINE_DIST = np.linalg.norm(HOLE_POS - np.array([0.05, 0.0]))
 AIM_ANGLE_TO_HOLE = np.arctan2(HOLE_POS[1], HOLE_POS[0])
-HOLE_RADIUS = 0.1
+HOLE_RADIUS = 0.054
